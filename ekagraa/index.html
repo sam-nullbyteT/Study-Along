@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Ekagraa · Interactive Study Along Workspace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="alternate icon" href="favicon.ico">
+  <link rel="stylesheet" href="styles.css">
+  
+  <!-- GSAP Animation Library (Mode 2 Default Reactive Engine) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <!-- Lottie-Web Animation Engine -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
+  <!-- Canvas Confetti Celebration Engine -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+</head>
+
+<body data-s="cafe">
+  <!-- Background Transitions & Ocean Flow -->
+  <div class="bg on" id="b1"></div>
+  <div class="bg" id="b2"></div>
+  <div class="shade"></div>
+  <div class="waves" aria-hidden="true">
+    <div>
+      <svg viewBox="0 0 2880 100" preserveAspectRatio="none">
+        <path d="M0 50Q180 12 360 50T720 50T1080 50T1440 50T1800 50T2160 50T2520 50T2880 50V100H0Z" />
+      </svg>
+    </div>
+    <div>
+      <svg viewBox="0 0 2880 130" preserveAspectRatio="none">
+        <path d="M0 70Q240 24 480 70T960 70T1440 70T1920 70T2400 70T2880 70V130H0Z" />
+      </svg>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       HEADER NAVIGATION & LOCALIZATION BAR
+       ========================================================================= -->
+  <header>
+    <div class="glass brand-badge">
+      <span class="logo-glow">🫧</span>
+      <b data-i18n="appName">Ekagraa</b>
+    </div>
+
+    <div class="glass mid-bar">
+      <span id="date"></span>
+      <span>·</span>
+      <span><span data-i18n="todayFocus">Today’s focus:</span> <b id="hf">0h 0m</b></span>
+    </div>
+
+    <div class="hdr-controls">
+      <!-- Multi-Language Selector Dropdown -->
+      <div class="lang-dropdown-wrapper">
+        <button class="glass lang-select-btn" id="lang-select-btn" aria-label="Select Language">
+          <span>🇬🇧</span>
+          <b>English</b>
+          <span>▾</span>
+        </button>
+        <div class="glass lang-menu" id="lang-menu"></div>
+      </div>
+
+      <!-- D-Day Target Countdown Pill (Click to set target) -->
+      <button class="glass pill-btn" id="dday-pill" data-i18n-title="ddayTarget">
+        <span>📌</span>
+        <b id="dday-badge-text">D-14</b>
+      </button>
+
+      <!-- Master Animation Toggle (Pause all GSAP, Lottie & Canvas for battery/focus) -->
+      <button class="glass pill-btn" id="anim-toggle-btn" data-i18n-title="animToggle">
+        <span id="anim-pill-icon">🟢</span>
+        <b id="anim-pill-text">Anim: ON</b>
+      </button>
+
+      <!-- Samurai Zen Toggle -->
+      <button class="glass pill-btn" id="zen-pill" data-i18n-title="zenModeOn">
+        <span>🧘</span>
+        <b data-i18n="zen">Zen</b>
+      </button>
+
+      <!-- Cast Count Pill (0 to 4) -->
+      <button class="glass pill-btn" id="char-pill" data-i18n-title="charsInScene">
+        <span>👥</span>
+        <b id="cp-cnt">3</b>
+      </button>
+
+      <!-- Peek Mode (Show/Hide Timer Card for scenery viewing) -->
+      <button class="glass pill-btn" id="peek-btn" data-i18n-title="peek">
+        <span>👁️</span>
+      </button>
+
+      <!-- Habit Streak -->
+      <div class="glass pill-btn" id="streak-badge" style="cursor:default">
+        <span>🔥</span>
+        <b id="streak">0</b><span data-i18n="dayStreak" class="streak-text">d streak</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       MULTI-ENGINE CHARACTER STAGE
+       - Korean Night Study Classroom & Dokseosil Desk (Mode 1 & 2)
+       - Samurai Zen Sanctuary World
+       - Window Weather Canvas (RaindropFX, SakuraFX, SnowFX)
+       - Lottie Desk Slot
+       ========================================================================= -->
+  <div id="stage-viewport">
+    <!-- Break Mode Floating Zzz / Music Notes Layer -->
+    <div id="break-particles-layer"></div>
+
+    <div id="ghibli-stage">
+      <!-- 2D Weather Effects on Glass Window (Raindrops, Drifting Petals, Snow) -->
+      <canvas id="window-weather-canvas" width="1040" height="440"></canvas>
+
+      <svg id="ghibli-svg" viewBox="0 0 1040 440" preserveAspectRatio="xMidYMid meet">
+        <defs>
+          <!-- Lamp Cone Volumetric Warm Gradient (Bound to var(--a)) -->
+          <radialGradient id="lamp-cone-grad" cx="50%" cy="0%" r="90%">
+            <stop offset="0%" stop-color="var(--a)" stop-opacity="0.85" />
+            <stop offset="35%" stop-color="var(--a)" stop-opacity="0.45" />
+            <stop offset="70%" stop-color="var(--a)" stop-opacity="0.15" />
+            <stop offset="100%" stop-color="var(--a)" stop-opacity="0" />
+          </radialGradient>
+          <!-- Dark Slate Glass Gradients -->
+          <linearGradient id="oak-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#141c2e" />
+            <stop offset="50%" stop-color="#0e131f" />
+            <stop offset="100%" stop-color="#090d16" />
+          </linearGradient>
+          <linearGradient id="desk-surface-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#1a2334" />
+            <stop offset="15%" stop-color="#0e131f" />
+            <stop offset="100%" stop-color="#090d16" />
+          </linearGradient>
+          <!-- Digital Tablet Screen Glow -->
+          <linearGradient id="tablet-glow" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#1e293b" />
+            <stop offset="100%" stop-color="#0f172a" />
+          </linearGradient>
+          <!-- Zen Dojo Gradients -->
+          <linearGradient id="tatami-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#141c2e" />
+            <stop offset="100%" stop-color="#090d16" />
+          </linearGradient>
+        </defs>
+
+        <!-- ===================================================================
+             WORLD 1: KOREAN STUDY CLASSROOM & DOKSEOSIL (독서실 & 야간 교실)
+             =================================================================== -->
+        <g id="study-world">
+          <!-- Architectural Panoramic Window (Semi-transparent so every scene gradient shines naturally through) -->
+          <rect x="70" y="20" width="900" height="260" rx="14" fill="rgba(10, 14, 24, 0.45)" stroke="rgba(var(--ar), 0.28)" stroke-width="2" />
+          
+          <!-- Distant Seoul Mountains & Namsan Tower Silhouette -->
+          <path d="M70,250 Q160,200 280,240 T540,230 T800,245 L970,260 L970,280 L70,280 Z" fill="#080c18" opacity="0.85" />
+          <path d="M420,240 L420,130 L422,110 L424,130 L424,240 Z" stroke="var(--a)" stroke-width="2.5" opacity="0.8" />
+          <circle cx="422" cy="145" r="7" fill="var(--a)" opacity="0.6" />
+          <circle cx="422" cy="110" r="2.5" fill="#f43f5e" class="blink-1" />
+
+          <!-- Distant City Lights / Night Windows -->
+          <g fill="var(--a)" opacity="0.6">
+            <rect x="150" y="242" width="4" height="6" class="blink-1" />
+            <rect x="190" y="238" width="5" height="8" class="blink-2" />
+            <rect x="230" y="245" width="4" height="4" class="blink-3" />
+            <rect x="340" y="240" width="6" height="7" class="blink-2" />
+            <rect x="520" y="242" width="4" height="5" class="blink-1" />
+            <rect x="680" y="239" width="6" height="8" class="blink-3" />
+            <rect x="760" y="244" width="4" height="5" class="blink-2" />
+            <rect x="850" y="241" width="5" height="7" class="blink-1" />
+          </g>
+
+          <!-- Window Mullions & Frame -->
+          <line x1="370" y1="20" x2="370" y2="280" stroke="rgba(255, 255, 255, 0.08)" stroke-width="4" />
+          <line x1="670" y1="20" x2="670" y2="280" stroke="rgba(255, 255, 255, 0.08)" stroke-width="4" />
+          <line x1="70" y1="160" x2="970" y2="160" stroke="rgba(255, 255, 255, 0.08)" stroke-width="3" />
+
+          <!-- Cozy Fairy Lights draped along window top (bound to var(--a)) -->
+          <g id="fairy-lights">
+            <path d="M 80,35 Q 220,70 370,45 Q 520,75 670,45 Q 820,72 960,40" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="1.5" />
+            <circle cx="130" cy="50" r="3.5" fill="var(--a)" opacity="0.9" />
+            <circle cx="200" cy="61" r="3.5" fill="var(--a)" opacity="0.9" />
+            <circle cx="270" cy="58" r="3.5" fill="var(--a)" opacity="0.8" />
+            <circle cx="340" cy="48" r="3.5" fill="var(--a)" opacity="0.9" />
+            <circle cx="420" cy="56" r="3.5" fill="var(--a)" opacity="0.9" />
+            <circle cx="500" cy="62" r="3.5" fill="var(--a)" opacity="0.8" />
+            <circle cx="580" cy="58" r="3.5" fill="var(--a)" opacity="0.9" />
+            <circle cx="650" cy="47" r="3.5" fill="var(--a)" opacity="0.9" />
+            <circle cx="730" cy="58" r="3.5" fill="var(--a)" opacity="0.8" />
+            <circle cx="810" cy="62" r="3.5" fill="var(--a)" opacity="0.9" />
+            <circle cx="890" cy="52" r="3.5" fill="var(--a)" opacity="0.9" />
+          </g>
+
+          <!-- THEME-SPECIFIC SCENE PROPS (.th-prop) -->
+          <g class="th-prop th-cafe">
+            <path d="M90,130 Q120,90 140,140 Q160,85 180,145 Z" fill="#1e293b" opacity="0.65" />
+            <rect x="125" y="145" width="22" height="30" rx="3" fill="#0f172a" opacity="0.8" />
+          </g>
+          <g class="th-prop th-rain">
+            <line x1="70" y1="278" x2="970" y2="278" stroke="rgba(147,197,253,0.3)" stroke-width="3" />
+          </g>
+          <g class="th-prop th-library">
+            <rect x="74" y="30" width="80" height="240" fill="#0b0f19" opacity="0.75" />
+            <rect x="886" y="30" width="80" height="240" fill="#0b0f19" opacity="0.75" />
+          </g>
+
+          <!-- Dokseosil Partition Wall & Upper Bookshelf (Dark Glassmorphic Slate + var(--a) Rim Light) -->
+          <rect x="40" y="190" width="960" height="240" fill="url(#oak-grad)" rx="8" stroke="var(--a)" stroke-opacity="0.25" stroke-width="1" />
+          <rect x="60" y="195" width="920" height="14" fill="#090d16" stroke="var(--a)" stroke-opacity="0.35" stroke-width="1" />
+          <!-- Korean Exam Prep Textbooks (Muted Slate + var(--a) Spines) -->
+          <g id="shelf-books">
+            <rect x="85" y="140" width="16" height="55" rx="2" fill="#1e293b" stroke="rgba(255,255,255,0.08)" />
+            <rect x="103" y="145" width="14" height="50" rx="2" fill="#334155" stroke="rgba(255,255,255,0.08)" />
+            <rect x="119" y="138" width="18" height="57" rx="2" fill="#1e293b" stroke="rgba(255,255,255,0.08)" />
+            <rect x="139" y="148" width="14" height="47" rx="2" fill="#475569" stroke="rgba(255,255,255,0.08)" />
+            <rect x="155" y="142" width="20" height="53" rx="2" fill="#334155" stroke="rgba(255,255,255,0.08)" />
+            <rect x="177" y="146" width="15" height="49" rx="2" fill="#1e293b" stroke="rgba(255,255,255,0.08)" />
+            <line x1="88" y1="152" x2="98" y2="152" stroke="var(--a)" stroke-width="2" stroke-opacity="0.9" />
+            <line x1="122" y1="150" x2="134" y2="150" stroke="var(--a)" stroke-width="2" stroke-opacity="0.9" />
+            <line x1="158" y1="154" x2="172" y2="154" stroke="var(--a)" stroke-width="2" stroke-opacity="0.9" />
+          </g>
+
+          <!-- Post-it Note D-Day Target on Partition (Dark Glass look: fill=rgba(15,23,42,0.85), stroke=var(--a)) -->
+          <g id="desk-dday-note" style="cursor:pointer">
+            <polygon points="230,150 295,150 295,200 230,200" fill="rgba(15, 23, 42, 0.85)" stroke="var(--a)" stroke-width="1.5" />
+            <polygon points="295,190 295,200 285,200" fill="var(--a)" opacity="0.8" />
+            <text x="240" y="172" fill="var(--a)" font-family="'Outfit', sans-serif" font-size="11" font-weight="700">D-DAY</text>
+            <text id="desk-dday-text" x="240" y="192" fill="#f8fafc" font-family="'Outfit', sans-serif" font-size="14" font-weight="800">D-14</text>
+          </g>
+
+          <!-- Architect Desk Lamp on Partition Left (Warm Volumetric Lighting) -->
+          <g id="architect-lamp">
+            <rect x="330" y="185" width="16" height="18" rx="2" fill="#1e293b" />
+            <line x1="338" y1="185" x2="355" y2="120" stroke="#475569" stroke-width="4.5" stroke-linecap="round" />
+            <line x1="355" y1="120" x2="385" y2="135" stroke="#475569" stroke-width="4" stroke-linecap="round" />
+            <path d="M375,130 L405,122 L412,142 L382,150 Z" fill="#0f172a" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" />
+            <circle id="lamp-bulb-el" cx="396" cy="144" r="5" fill="var(--a)" opacity="0.95" />
+            <polygon id="lamp-cone-el" points="396,144 260,280 620,280" fill="url(#lamp-cone-grad)" opacity="0.48" pointer-events="none" />
+          </g>
+
+          <!-- Dark Glassmorphic Slate Desk Surface with var(--a) Rim Light -->
+          <rect x="0" y="270" width="1040" height="170" fill="url(#desk-surface-grad)" stroke="var(--a)" stroke-opacity="0.35" stroke-width="1.5" />
+          <line x1="0" y1="270" x2="1040" y2="270" stroke="var(--a)" stroke-opacity="0.45" stroke-width="2" />
+
+          <!-- DESK PROPS: Korean Study Cafe Setup -->
+          <!-- 1. Iced Americano Cup with Ice Cubes & Straw (아이스 아메리카노) -->
+          <g id="char-desk-coffee" transform="translate(640, 240)">
+            <polygon points="20,15 48,15 44,65 24,65" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" />
+            <polygon points="22,25 46,25 43,63 25,63" fill="#141c2e" opacity="0.88" />
+            <rect x="25" y="28" width="8" height="8" rx="2" fill="rgba(255,255,255,0.4)" />
+            <rect x="34" y="32" width="7" height="7" rx="2" fill="rgba(255,255,255,0.3)" />
+            <ellipse cx="34" cy="15" rx="15" ry="4" fill="rgba(255,255,255,0.3)" />
+            <line x1="38" y1="3" x2="34" y2="40" stroke="var(--a)" stroke-width="2.5" stroke-linecap="round" />
+          </g>
+
+          <!-- 2. Tablet / iPad with Digital Notes & Stylus Pen (아이패드 필기) -->
+          <g id="char-desk-tablet" transform="translate(420, 260)">
+            <rect x="0" y="0" width="110" height="65" rx="6" fill="#0b0f19" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" />
+            <rect x="5" y="5" width="100" height="55" rx="3" fill="#0f172a" />
+            <line x1="12" y1="15" x2="55" y2="15" stroke="var(--a)" stroke-width="2" stroke-linecap="round" opacity="0.9" />
+            <line x1="12" y1="23" x2="85" y2="23" stroke="#94a3b8" stroke-width="1.8" stroke-linecap="round" />
+            <line x1="12" y1="31" x2="70" y2="31" stroke="#94a3b8" stroke-width="1.8" stroke-linecap="round" />
+            <line x1="12" y1="39" x2="60" y2="39" stroke="var(--a)" stroke-width="1.8" stroke-linecap="round" opacity="0.75" />
+            <line x1="88" y1="12" x2="98" y2="52" stroke="#f8fafc" stroke-width="2" stroke-linecap="round" />
+          </g>
+
+          <!-- 3. Desk Stationary Organizer with Highlighters (형광펜 & 필통) -->
+          <g id="char-desk-stationery" transform="translate(605, 230)">
+            <rect x="0" y="18" width="24" height="35" rx="4" fill="#1e293b" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" />
+            <rect x="3" y="4" width="4" height="24" rx="1.5" fill="var(--a)" opacity="0.85" />
+            <rect x="9" y="8" width="4" height="20" rx="1.5" fill="#475569" />
+            <rect x="15" y="2" width="4" height="26" rx="1.5" fill="#334155" />
+          </g>
+
+          <!-- STUDY CHARACTERS CAST (0 to 4 toggled by #cp-cnt) -->
+          <!-- Character 1: Deep Focus Student with Headphones (Solo) -->
+          <g class="g-char show" id="char-1" transform="translate(470, 160)">
+            <path d="M 35 110 C 35 70 50 60 75 60 C 100 60 115 70 115 110 Z" fill="#1e293b" />
+            <path d="M 65 60 L 75 80 L 85 60" fill="none" stroke="#334155" stroke-width="2.5" stroke-linecap="round" />
+            <circle cx="75" cy="38" r="24" fill="#e2e8f0" opacity="0.9" />
+            <path d="M 51 40 C 50 15 100 15 99 40 C 93 24 57 24 51 40 Z" fill="#0f172a" />
+            <circle cx="75" cy="14" r="9" fill="#0f172a" />
+            <path d="M 48 38 A 28 28 0 0 1 102 38" fill="none" stroke="var(--a)" stroke-width="5" stroke-linecap="round" opacity="0.9" />
+            <rect x="44" y="30" width="8" height="18" rx="4" fill="var(--a)" opacity="0.9" />
+            <rect x="98" y="30" width="8" height="18" rx="4" fill="var(--a)" opacity="0.9" />
+            <path d="M 64 42 Q 68 45 72 42 M 78 42 Q 82 45 86 42" fill="none" stroke="#334155" stroke-width="2" stroke-linecap="round" />
+            <ellipse cx="63" cy="46" rx="4" ry="2" fill="var(--a)" opacity="0.4" />
+            <ellipse cx="87" cy="46" rx="4" ry="2" fill="var(--a)" opacity="0.4" />
+          </g>
+
+          <!-- Character 2: Study Partner reading textbook (Duo) -->
+          <g class="g-char show" id="char-2" transform="translate(330, 175)">
+            <path d="M 30 95 C 30 65 45 55 65 55 C 85 55 100 65 100 95 Z" fill="#334155" />
+            <circle cx="65" cy="36" r="21" fill="#e2e8f0" opacity="0.9" />
+            <path d="M 44 38 C 42 16 88 16 86 38 C 80 24 50 24 44 38 Z" fill="#0f172a" />
+            <circle cx="58" cy="36" r="6" fill="none" stroke="var(--a)" stroke-width="1.8" opacity="0.9" />
+            <circle cx="72" cy="36" r="6" fill="none" stroke="var(--a)" stroke-width="1.8" opacity="0.9" />
+            <line x1="64" y1="36" x2="66" y2="36" stroke="var(--a)" stroke-width="1.8" opacity="0.9" />
+          </g>
+
+          <!-- Character 3: Dokseosil Sleeping Mascot Cat (+Cat) -->
+          <g class="g-char show" id="char-3" transform="translate(710, 235)">
+            <path id="cat-tail-path" d="M 20 28 Q 0 16 6 4" fill="none" stroke="#475569" stroke-width="7" stroke-linecap="round" />
+            <ellipse cx="38" cy="24" rx="20" ry="14" fill="#334155" />
+            <circle cx="52" cy="16" r="12" fill="#334155" />
+            <polygon points="44,8 48,0 54,7" fill="#1e293b" />
+            <polygon points="54,7 60,0 62,9" fill="#1e293b" />
+            <path d="M 45 22 Q 52 25 58 20" fill="none" stroke="var(--a)" stroke-width="2" stroke-linecap="round" opacity="0.9" />
+            <path d="M 48 18 Q 51 21 54 18 M 56 18 Q 59 21 62 18" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" />
+          </g>
+
+          <!-- Character 4: Cheerful Study Buddy (Squad) -->
+          <g class="g-char" id="char-4" transform="translate(200, 185)">
+            <path d="M 25 85 C 25 58 40 48 58 48 C 76 48 91 58 91 85 Z" fill="#475569" />
+            <circle cx="58" cy="30" r="19" fill="#e2e8f0" opacity="0.9" />
+            <path d="M 39 32 C 37 14 79 14 77 32 Z" fill="#0f172a" />
+            <path d="M 37 24 C 37 10 79 10 79 24 Z" fill="var(--a)" opacity="0.85" />
+            <path d="M 58 24 L 92 24" stroke="var(--a)" stroke-width="3" stroke-linecap="round" opacity="0.85" />
+          </g>
+        </g>
+
+        <!-- ===================================================================
+             WORLD 2: SAMURAI ZEN DOJO (달밤의 명상 & 참선)
+             =================================================================== -->
+        <g id="zen-world">
+          <rect x="70" y="20" width="900" height="260" rx="14" fill="rgba(10, 14, 24, 0.45)" stroke="rgba(var(--ar), 0.28)" stroke-width="2" />
+          <circle cx="520" cy="110" r="70" fill="#fef3c7" opacity="0.85" />
+          <path d="M380,280 L420,120 L425,70 M405,140 Q450,110 490,135 M418,95 Q470,80 510,98" stroke="#1c1917" stroke-width="3.5" fill="none" stroke-linecap="round" opacity="0.7" />
+          
+          <g stroke="rgba(255,255,255,0.08)" stroke-width="2">
+            <line x1="220" y1="20" x2="220" y2="280" />
+            <line x1="370" y1="20" x2="370" y2="280" />
+            <line x1="520" y1="20" x2="520" y2="280" />
+            <line x1="670" y1="20" x2="670" y2="280" />
+            <line x1="820" y1="20" x2="820" y2="280" />
+            <line x1="70" y1="85" x2="970" y2="85" />
+            <line x1="70" y1="150" x2="970" y2="150" />
+            <line x1="70" y1="215" x2="970" y2="215" />
+          </g>
+
+          <circle class="zen-ring-1" cx="520" cy="220" r="45" fill="none" stroke="var(--a)" stroke-opacity="0.45" stroke-width="2" />
+          <circle class="zen-ring-2" cx="520" cy="220" r="75" fill="none" stroke="var(--a)" stroke-opacity="0.3" stroke-width="1.5" />
+
+          <rect x="0" y="270" width="1040" height="170" fill="url(#tatami-grad)" stroke="var(--a)" stroke-opacity="0.35" stroke-width="1.5" />
+          <line x1="0" y1="270" x2="1040" y2="270" stroke="var(--a)" stroke-opacity="0.45" stroke-width="2" />
+
+          <circle class="g-orb" cx="300" cy="180" r="6" fill="var(--a)" opacity="0.6" />
+          <circle class="g-orb" cx="740" cy="160" r="7" fill="var(--a)" opacity="0.5" />
+
+          <!-- Zen Master Meditating (zchar-1) -->
+          <g class="z-char show" id="zchar-1" transform="translate(480, 160)">
+            <path d="M 10 110 C 10 70 30 55 40 55 C 50 55 70 70 70 110 Z" fill="#1e293b" />
+            <path d="M 32 55 L 40 75 L 48 55" stroke="var(--a)" stroke-width="2" fill="none" opacity="0.85" />
+            <circle cx="40" cy="35" r="18" fill="#e2e8f0" opacity="0.9" />
+            <path d="M 24 35 C 24 18 56 18 56 35 Z" fill="#0f172a" />
+            <rect x="37" y="12" width="6" height="12" rx="3" fill="#0f172a" />
+          </g>
+          <g class="z-char show" id="zchar-2" transform="translate(260, 200)">
+            <polygon points="30,30 50,30 56,45 24,45" fill="#334155" />
+            <rect x="32" y="45" width="16" height="18" fill="var(--a)" opacity="0.75" />
+            <rect x="28" y="63" width="24" height="25" fill="#1e293b" />
+          </g>
+          <g class="z-char show" id="zchar-3" transform="translate(730, 210)">
+            <ellipse cx="40" cy="75" rx="28" ry="8" fill="#0f172a" />
+            <path d="M 40 75 Q 35 50 50 40 Q 60 32 55 20" stroke="#334155" stroke-width="5" fill="none" stroke-linecap="round" />
+            <circle cx="55" cy="20" r="16" fill="#1e293b" stroke="var(--a)" stroke-width="1.5" stroke-opacity="0.5" />
+            <circle cx="38" cy="38" r="12" fill="#1e293b" stroke="var(--a)" stroke-width="1.5" stroke-opacity="0.5" />
+          </g>
+          <g class="z-char" id="zchar-4" transform="translate(160, 190)">
+            <line x1="40" y1="80" x2="40" y2="40" stroke="#334155" stroke-width="4" />
+            <line x1="25" y1="45" x2="55" y2="45" stroke="var(--a)" stroke-width="5" stroke-linecap="round" opacity="0.8" />
+          </g>
+        </g>
+      </svg>
+
+      <!-- Lottie Animation Slot (steaming tea/coffee or study companion) -->
+      <div id="lottie-desk-slot"></div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       UNDER-TABLE GLASS POMODORO TIMER CONSOLE
+       ========================================================================= -->
+  <div id="focus" class="glass desk-timer-panel">
+    <div class="ph">
+      <span id="pomo-title" data-i18n="pomoTitle">⏱️ Pomodoro Timer</span>
+      <div style="display:flex;align-items:center;gap:6px">
+        <button class="btn-pip" id="pip-btn" data-i18n-title="pipMode" title="Floating Mini-Timer (Picture-in-Picture)">⧉ PiP</button>
+        <button class="x" onclick="window.app.toggleDrawer('focus')" aria-label="Close timer">✕</button>
+      </div>
+    </div>
+
+    <div class="timer-console-body">
+      <!-- Left Controls: Mode Tabs & Custom Duration -->
+      <div class="ctrl-group ctrl-modes">
+        <div class="tabs" id="tabs">
+          <button data-m="f" class="on" data-i18n="focusTab">Focus</button>
+          <button data-m="s" data-i18n="shortBreakTab">Short break</button>
+          <button data-m="l" data-i18n="longBreakTab">Long break</button>
+        </div>
+        <div class="dur">
+          <label><span data-i18n="hr">HR</span> <input id="hr" type="number" min="0" max="9" value="0"></label>
+          <label><span data-i18n="min">MIN</span> <input id="mn" type="number" min="0" max="59" value="25"></label>
+        </div>
+      </div>
+
+      <!-- Center Core: Big Glow Timer Digits & Session Status -->
+      <div class="timer-center-core">
+        <div class="time" id="time">25:00</div>
+        <div class="lbl" id="lbl">Focus session #1</div>
+        <div class="quote-banner" id="quote-banner">“Focus is a muscle: the more you practice, the stronger it grows.”</div>
+      </div>
+
+      <!-- Right Controls: Action Buttons & Work Task Input -->
+      <div class="ctrl-group ctrl-actions">
+        <div class="row timer-actions-row">
+          <button class="btn" id="reset" data-i18n-title="resetTimer">↺</button>
+          <button class="btn go" id="start" data-i18n="startTimer">▶ Start timer</button>
+          <button class="btn" id="skip" data-i18n-title="skipTimer">⏭</button>
+        </div>
+        <input class="work" id="work" data-i18n-placeholder="workPlaceholder"
+          placeholder="What are you working on right now?" maxlength="80">
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       SIDEBAR DRAWER PANELS
+       ========================================================================= -->
+  <aside id="side" class="glass">
+    <!-- PANEL 1: SCENES & CAST -->
+    <section id="s-theme">
+      <div class="ph">
+        <span data-i18n="scenesCast">🎨 Scenes & Cast</span>
+        <button class="x" onclick="window.app.toggleDrawer('theme')">✕</button>
+      </div>
+
+      <div class="sub-lbl"><span data-i18n="stageMode">⚔️ Stage World</span></div>
+      <div class="mode-switch">
+        <button class="btn on" id="m-study" data-i18n="studyRoom">✍️ Study Room</button>
+        <button class="btn" id="m-zen" data-i18n="samuraiZen">🧘 Samurai Zen</button>
+      </div>
+
+      <div class="sub-lbl">
+        <span data-i18n="charsInScene">✨ Characters in Scene</span>
+        <span id="char-desc" style="color:var(--a);font-size:11px">Duo + Tail Cat</span>
+      </div>
+      <div class="char-sel" id="char-sel">
+        <button class="btn" data-c="0"><b>0</b><span>None</span></button>
+        <button class="btn" data-c="1"><b>1</b><span>Solo</span></button>
+        <button class="btn" data-c="2"><b>2</b><span>Duo</span></button>
+        <button class="btn on" data-c="3"><b>3</b><span>+Cat</span></button>
+        <button class="btn" data-c="4"><b>4</b><span>Squad</span></button>
+      </div>
+
+      <div class="sub-lbl"><span data-i18n="themeAtmosphere">🖼️ Theme Atmosphere</span></div>
+      <div class="grid" id="scenes"></div>
+    </section>
+
+    <!-- PANEL 2: AMBIENCE MIXER & MOODIST PRESETS -->
+    <section id="s-amb">
+      <div class="ph">
+        <span data-i18n="ambience">🌊 Ambience Mixer</span>
+        <button class="x" onclick="window.app.toggleDrawer('amb')">✕</button>
+      </div>
+
+      <!-- 1-Click Moodist Ambience Presets -->
+      <div class="sub-lbl"><span>⚡ Quick Atmosphere Presets</span></div>
+      <div id="amb-presets">
+        <button class="btn amb-preset-btn" data-preset="rainy-cafe">🌧️ Rainy Cafe</button>
+        <button class="btn amb-preset-btn" data-preset="dokseosil">📚 Dokseosil</button>
+        <button class="btn amb-preset-btn" data-preset="spring">🌸 Spring Flow</button>
+        <button class="btn amb-preset-btn" data-preset="gamma">⚡ 40Hz Gamma</button>
+      </div>
+
+      <div class="sub-lbl"><span data-i18n="ambience">🎚️ Sound Mixer</span></div>
+      <div id="snds"></div>
+    </section>
+
+    <!-- PANEL 4: LOFI MUSIC TURNTABLE -->
+    <section id="s-music">
+      <div class="ph">
+        <span data-i18n="lofiMusic">🎧 Lofi Turntable</span>
+        <button class="x" onclick="window.app.toggleDrawer('music')">✕</button>
+      </div>
+      <div class="disc" id="disc">🎵</div>
+      <div class="tt" id="tt">Rainy Day Loop</div>
+      <div class="row" style="margin-bottom:14px">
+        <button class="btn" id="mp" style="flex:1">⏮</button>
+        <button class="btn go" id="mpl" style="flex:1" data-i18n="play">▶ Play</button>
+        <button class="btn" id="mn2" style="flex:1">⏭</button>
+      </div>
+      <div class="snd">
+        <span>🔈</span>
+        <input type="range" id="mv" min="0" max="1" step="0.01" value="0.5">
+      </div>
+    </section>
+
+    <!-- PANEL 5: TASKS TRACKER -->
+    <section id="s-todo">
+      <div class="ph">
+        <span data-i18n="tasks">✅ Study Tasks</span>
+        <button class="x" onclick="window.app.toggleDrawer('todo')">✕</button>
+      </div>
+      <form class="add" id="tf">
+        <input id="ti" data-i18n-placeholder="addTaskPlaceholder" placeholder="Add a new study task..." maxlength="80">
+        <button class="btn go" data-i18n="addTaskBtn">Add</button>
+      </form>
+      <div id="tl"></div>
+    </section>
+
+    <!-- PANEL 6: STATS & ANALYTICS + KOREAN 10-MINUTE STUDY PLANNER -->
+    <section id="s-stats">
+      <div class="ph">
+        <span data-i18n="stats">📈 Study Analytics</span>
+        <button class="x" onclick="window.app.toggleDrawer('stats')">✕</button>
+      </div>
+      <div class="stat">
+        <div><b id="st1">0m</b><span data-i18n="todayStat">today</span></div>
+        <div><b id="st2">0</b><span data-i18n="sessionsStat">sessions</span></div>
+        <div><b id="st3">0</b><span data-i18n="streakStat">day streak</span></div>
+      </div>
+      <div class="bars" id="bars"></div>
+
+      <!-- Korean 10-Minute Study Planner Grid (10분 플래너) -->
+      <div class="sub-lbl" style="margin-top:14px">
+        <span>🇰🇷 10-Minute Focus Planner (10분 플래너)</span>
+      </div>
+      <div id="kr-planner-grid"></div>
+    </section>
+
+    <!-- PANEL 7: FOCUS JOURNAL -->
+    <section id="s-journal">
+      <div class="ph">
+        <span data-i18n="journal">📓 Focus Journal</span>
+        <button class="x" onclick="window.app.toggleDrawer('journal')">✕</button>
+      </div>
+      <div class="moods" id="moods"></div>
+      <textarea id="note" data-i18n-placeholder="journalPlaceholder"
+        placeholder="How was your focus today? What did you conquer?"></textarea>
+      <div class="cnt" id="cnt">0 words</div>
+    </section>
+  </aside>
+
+  <!-- =========================================================================
+       BOTTOM GLASS DOCK
+       ========================================================================= -->
+  <nav id="dock" class="glass">
+    <button data-k="theme" data-i18n-title="dockScenes">
+      <span>🎨</span><b data-i18n="dockScenes">Scenes</b>
+    </button>
+    <button data-k="amb" data-i18n-title="dockAmbience">
+      <span>🌊</span><b data-i18n="dockAmbience">Ambience</b>
+    </button>
+    <button data-k="music" data-i18n-title="dockMusic">
+      <span>🎧</span><b data-i18n="dockMusic">Music</b>
+    </button>
+    <i></i>
+    <button data-k="focus" class="act" data-i18n-title="dockFocus">
+      <span>⏱️</span><b data-i18n="dockFocus">Focus</b>
+    </button>
+    <i></i>
+    <button data-k="todo" data-i18n-title="dockTasks">
+      <span>✅</span><b data-i18n="dockTasks">Tasks</b>
+    </button>
+    <button data-k="stats" data-i18n-title="dockStats">
+      <span>📈</span><b data-i18n="dockStats">Stats</b>
+    </button>
+    <button data-k="journal" data-i18n-title="dockJournal">
+      <span>📓</span><b data-i18n="dockJournal">Journal</b>
+    </button>
+  </nav>
+
+  <!-- Hidden elements for Floating Mini-Timer (HTML5 Picture-in-Picture) -->
+  <canvas id="pip-canvas" width="400" height="400" style="display:none"></canvas>
+  <video id="pip-video" style="display:none" muted playsinline></video>
+
+  <!-- App Modular Scripts (i18n untouched, animations, app) -->
+  <script src="i18n.js"></script>
+  <script src="animations.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>

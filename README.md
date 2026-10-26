@@ -21,17 +21,17 @@
 ## 🚀 Getting Started
 
 ### Option 1: Direct Browser
-Simply open `ekagraa/index.html` in any modern web browser.
+Simply open `index.html` in any modern web browser.
 
 ### Option 2: Local HTTP Server (Recommended)
 You can run a lightweight static server using `serve`, `http-server`, or Python:
 
 ```bash
 # Using npx serve
-npx serve ekagraa -l 3000
+npx serve . -l 3000
 
 # Or with Python
-python -m http.server 3000 --directory ekagraa
+python -m http.server 3000
 ```
 
 Then navigate to: `http://localhost:3000`
@@ -42,13 +42,12 @@ Then navigate to: `http://localhost:3000`
 
 ```text
 Study along/
-├── ekagraa/
-│   ├── index.html         # Main application markup & structure
-│   ├── styles.css         # Glassmorphism aesthetic design & themes
-│   ├── app.js             # Core Pomodoro logic, soundscapes & state
-│   ├── animations.js      # GSAP & dynamic interaction animations
-│   ├── i18n.js            # Internationalization & translations
-│   └── favicon*           # App icons and graphics
+├── index.html         # Main application markup & structure
+├── styles.css         # Glassmorphism aesthetic design & themes
+├── app.js             # Core Pomodoro logic, soundscapes & state
+├── animations.js      # GSAP & dynamic interaction animations
+├── i18n.js            # Internationalization & translations
+├── favicon*           # App icons and graphics
 ├── .gitignore
 └── README.md
 ```
